@@ -1,0 +1,19 @@
+{
+  "name": "aprh",
+  "version": "1.0.0",
+  "description": "Admin panel for graph database based on json shemes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aleksandrenko/aprh.git"
+  },
+  "author": "Nikolay Aleksandrenko",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aleksandrenko/aprh/issues"
+  },
+  "homepage": "https://github.com/aleksandrenko/aprh#readme"
+}
