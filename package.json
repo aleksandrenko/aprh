@@ -4,6 +4,7 @@
   "description": "Admin panel for graph database based on json shemes",
   "main": "main.js",
   "scripts": {
+    "start": "webpack-dev-server --config webpack.config.js --progress --colors",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -12,6 +13,16 @@
   },
   "author": "Nikolay Aleksandrenko",
   "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.4.5",
+    "babel-loader": "^6.0.1",
+    "babel-preset-es2015": "^6.0.15",
+    "babel-preset-react": "^6.0.15",
+    "eslint": "^1.10.3",
+    "eslint-loader": "^1.2.0",
+    "webpack": "^1.12.2",
+    "webpack-dev-server": "^1.12.1"
+  },
   "bugs": {
     "url": "https://github.com/aleksandrenko/aprh/issues"
   },

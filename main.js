@@ -1,3 +1,1 @@
-/**
- * Created by nikolaialeksandrenko on 3/1/16.
- */
+import app from './app/index';
