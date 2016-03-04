@@ -10,7 +10,7 @@ require('./css/styles.css');
  * @param graphQLParams
  */
 function graphQLFetcher(graphQLParams) {
-  return fetch(window.location.origin + '/graphql', {
+  return fetch('http://127.0.0.1:3000/graphql', {
     method: 'post',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(graphQLParams)
