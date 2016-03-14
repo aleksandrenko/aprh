@@ -51,6 +51,7 @@ app
   .use('/assets', express.static(__dirname + '/public'))
   .use('/graphql', graphqlHTTP({
     schema: schema,
-    pretty: true
+    pretty: true,
+    graphiql: true
   }))
   .listen(3000);
