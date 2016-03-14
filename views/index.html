@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title></title>
+  <link rel="stylesheet" href="./assets/css/styles.css"/>
+</head>
+<body>
+
+<code class="language-javascript" id="wrapper"></code>
+
+<div id="footer"
+     style="position: absolute; bottom: 0; left: 0; right: 0; height: 300px; overflow: auto; padding: 10px; border-top: solid 1px;"></div>
+
+<script src="./assets/grad3ph-sample.js"></script>
+<script>
+  var type = {
+    string: 'graphql.GraphQLString',
+    number: 'graphql.GraphQLFloat',
+    date: 'graphql.GraphQLString'
+  };
+
+  function createScheme(graphScheme) {
+    return graphScheme.map(function (node) {
+      return {
+        name: node.label,
+        fields: node.properties.reduce(function (acc ,property) {
+
+          Object.defineProperty(acc, property.key, {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: {
+              type: type[property.type]
+            }
+          });
+
+          return acc;
+        }, {})
+      }
+    });
+  }
+
+  var generatedScheme = createScheme(window.grad3ph.nodes);
+
+  console.log('generatedScheme: ');
+  console.log(generatedScheme);
+  console.log('');
+  console.log('window.grad3ph.nodes: ');
+  console.log(window.grad3ph.nodes);
+  console.log('');
+  console.log('');
+</script>
+
+</body>
+</html>
