@@ -13,8 +13,7 @@
   },
   "author": "Nikolay Aleksandrenko",
   "license": "ISC",
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "bugs": {
     "url": "https://github.com/aleksandrenko/aprh/issues"
   },
