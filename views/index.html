@@ -10,14 +10,7 @@
 
 <body>
 
-<div id="wrapper"></div>
+<div id="wrapper"><%- scheme %></div>
 
-<script>
-  var wrapper = document.getElementById("wrapper");
-  var jData = JSON.stringify(<%- JSON.stringify(scheme) %>);
-  var data = JSON.parse(jData);
-
-  var tree = jsonTree.create(data, wrapper);
-</script>
 </body>
 </html>
