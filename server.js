@@ -15,7 +15,7 @@ var grad3ph = {
         },
         {
           "key": "id",
-          "type": "string"
+          "type": "id"
         },
         {
           "key": "birthday",
@@ -24,26 +24,30 @@ var grad3ph = {
         {
           "key": "gender",
           "type": "string"
-        }
-      ]
-    },
-    {
-      "label": "place",
-      "properties": [
-        {
-          key: "name",
-          type: "string"
         },
         {
-          key: "id",
-          type: "string"
-        },
-        {
-          key: "location",
-          type: "string"
+          key: 'friends',
+          type: 'string'
         }
       ]
     }
+    //{
+    //  "label": "place",
+    //  "properties": [
+    //    {
+    //      key: "name",
+    //      type: "string"
+    //    },
+    //    {
+    //      key: "id",
+    //      type: "string"
+    //    },
+    //    {
+    //      key: "location",
+    //      type: "string"
+    //    }
+    //  ]
+    //}
   ],
   "edges": [
     {
@@ -98,6 +102,7 @@ var admin = express(); // the sub app
 /* ========================================================================= */
 
 var TYPES = {
+  id: graphql.GraphQLID,
   string: graphql.GraphQLString,
   float: graphql.GraphQLFloat,
   int: graphql.GraphQLInt,
@@ -109,23 +114,32 @@ function createScheme(graphSchemes) {
   var graphQLObjects = {};
 
   // create GraphQL Object Types
-  graphSchemes.forEach(function(graphScheme) {
+  graphSchemes.forEach(function (graphScheme) {
     graphQLObjects[graphScheme.label] = new graphql.GraphQLObjectType({
       name: graphScheme.label,
       description: 'TODO: replace this static description',
-      fields: graphScheme.properties.reduce( (fields, property) => {
-        fields[property.key] = {
-          type: TYPES[property.type]
-        };
-        return fields;
-      }, {})
+      fields: function () {
+        return graphScheme.properties.reduce((fields, property) => {
+          if (property.key === 'friends') {
+            fields[property.key] = {
+              type: new graphql.GraphQLList(graphQLObjects[graphScheme.label])
+            };
+            return fields;
+          }
+
+          fields[property.key] = {
+            type: TYPES[property.type]
+          };
+          return fields;
+        }, {})
+      }
     });
   });
 
   // graph scheme fields
   var graphQlSchemeFields = {};
 
-  graphSchemes.forEach(function(graphScheme) {
+  graphSchemes.forEach(function (graphScheme) {
     graphQlSchemeFields[graphScheme.label] = {
       type: graphQLObjects[graphScheme.label],
       args: {
@@ -138,14 +152,13 @@ function createScheme(graphSchemes) {
   });
 
   // mutators
-
   var graphQLMutators = {};
 
-  graphSchemes.forEach(function(graphScheme) {
+  graphSchemes.forEach(function (graphScheme) {
     // create mutator
     graphQLMutators['create' + capitalize(graphScheme.label)] = {
       type: graphQLObjects[graphScheme.label],
-      args: graphScheme.properties.reduce( function(args, property) {
+      args: graphScheme.properties.reduce(function (args, property) {
         // skip id property if there is one
         if (property.key === 'id') {
           return args;
@@ -163,7 +176,7 @@ function createScheme(graphSchemes) {
           name: args.name,
           id: data.length
         });
-        return data[data.length-1];
+        return data[data.length - 1];
       }
     };
   });
