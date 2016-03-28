@@ -1,6 +1,7 @@
 var graphql = require('graphql');
 var GraphQLUtilities = require('graphql/utilities');
 var graphqlHTTP = require('express-graphql');
+var graphqlCustomTypes = require('graphql-custom-types');
 var express = require('express');
 
 // sample grad3ph scheme
@@ -104,10 +105,12 @@ var admin = express(); // the sub app
 var TYPES = {
   id: graphql.GraphQLID,
   string: graphql.GraphQLString,
-  float: graphql.GraphQLFloat,
-  int: graphql.GraphQLInt,
-  date: graphql.GraphQLString,
-  datetime: graphql.GraphQLString
+  int: graphql.GraphQLFloat,
+  float: graphql.GraphQLInt,
+  datetime: graphqlCustomTypes.GraphQLDateTime,
+  email: graphqlCustomTypes.GraphQLEmail,
+  url: graphqlCustomTypes.GraphQLURL,
+  password: graphqlCustomTypes.GraphQLPassword
 };
 
 function createScheme(graphSchemes) {
