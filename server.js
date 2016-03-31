@@ -6,8 +6,9 @@ var express = require('express');
 
 // sample grad3ph scheme
 var grad3ph = {
-  "nodes": [
+  nodes: [
     {
+      "id": 1,
       "label": "user",
       "properties": [
         {
@@ -20,70 +21,79 @@ var grad3ph = {
         },
         {
           "key": "birthday",
-          "type": "date"
+          "type": "datetime"
         },
         {
           "key": "gender",
           "type": "string"
+        }
+      ]
+    },
+    {
+      id: 2,
+      "label": "place",
+      "properties": [
+        {
+          key: "name",
+          type: "string"
         },
         {
-          key: 'friends',
-          type: 'string'
+          key: "id",
+          type: "string"
+        },
+        {
+          key: "location",
+          type: "string"
         }
       ]
     }
-    //{
-    //  "label": "place",
-    //  "properties": [
-    //    {
-    //      key: "name",
-    //      type: "string"
-    //    },
-    //    {
-    //      key: "id",
-    //      type: "string"
-    //    },
-    //    {
-    //      key: "location",
-    //      type: "string"
-    //    }
-    //  ]
-    //}
   ],
-  "edges": [
+  edges: [
     {
-      "startNodeId": "a08c199c",
-      "endNodeId": "a880b3b9",
-      "middlePointOffset": [0, 0],
-      "properties": [],
-      "label": "authored",
-      "id": "aba7fd8f",
-      "isSelected": false,
-      "isEdge": true
-    },
-    {
-      "startNodeId": "a08c199c",
-      "endNodeId": "a08c199c",
-      "middlePointOffset": [-50, 50],
+      "startNodeId": 1,
+      "endNodeId": 1,
       "properties": [
         {
-          "id": "afbeb084",
-          "key": "since",
-          "type": "date",
-          "hasDefaultValue": false,
-          "defaultValue": "",
-          "hasLimit": false,
-          "limit": [0, 0],
-          "isRequired": false
+          key: 'since',
+          type: 'datetime'
         }
       ],
-      "label": "friends",
-      "id": "aba2e296",
-      "isSelected": false,
-      "isEdge": true
+      "label": "friend_with"
+    },
+    {
+      "startNodeId": 1,
+      "endNodeId": 2,
+      "label": "likes",
+      "properties": [
+        {
+          "key": "liked",
+          "type": "datetime"
+        }
+      ]
     }
   ]
 };
+
+/**
+ * @param id
+ * @returns {Object}
+ * @private
+ */
+function _getNodeSchemeById(id) {
+  return grad3ph.nodes.filter(function (node) {
+    return node.id === id
+  });
+}
+
+function _getEdgesByStartNodeId(id) {
+  return grad3ph.edges.filter(function (edge) {
+    return edge.startNodeId === id;
+  });
+}
+
+/* ================================================================================================================== */
+/* Express */
+/* ================================================================================================================== */
 
 var app = express();
 app.set('views', __dirname + '/viewsçç');
@@ -116,19 +126,35 @@ var TYPES = {
 function createScheme(graphSchemes) {
   var graphQLObjects = {};
 
+  // create GraphQL Edge Object Types
+  graphSchemes.edges.forEach(function (edge) {
+    graphQLObjects[edge.label] = new graphql.GraphQLObjectType({
+      name: edge.label + '_' + _getNodeSchemeById(edge.endNodeId)[0].label,
+      description: 'TODO: replace this static description',
+      fields: function () {
+        return edge.properties.reduce((fields, property) => {
+          fields[property.key] = {
+            type: TYPES[property.type]
+          };
+          return fields;
+        }, {})
+      }
+    });
+  });
+
   // create GraphQL Object Types
-  graphSchemes.forEach(function (graphScheme) {
+  graphSchemes.nodes.forEach(function (graphScheme) {
     graphQLObjects[graphScheme.label] = new graphql.GraphQLObjectType({
       name: graphScheme.label,
       description: 'TODO: replace this static description',
       fields: function () {
         return graphScheme.properties.reduce((fields, property) => {
-          if (property.key === 'friends') {
-            fields[property.key] = {
-              type: new graphql.GraphQLList(graphQLObjects[graphScheme.label])
+          var edges = _getEdgesByStartNodeId(graphScheme.id);
+          edges.forEach(function(edge) {
+            fields[edge.label + '_' + _getNodeSchemeById(edge.endNodeId)[0].label] = {
+              type: graphQLObjects[edge.label]
             };
-            return fields;
-          }
+          });
 
           fields[property.key] = {
             type: TYPES[property.type]
@@ -142,7 +168,7 @@ function createScheme(graphSchemes) {
   // graph scheme fields
   var graphQlSchemeFields = {};
 
-  graphSchemes.forEach(function (graphScheme) {
+  graphSchemes.nodes.forEach(function (graphScheme) {
     graphQlSchemeFields[graphScheme.label] = {
       type: graphQLObjects[graphScheme.label],
       args: {
@@ -157,7 +183,7 @@ function createScheme(graphSchemes) {
   // mutators
   var graphQLMutators = {};
 
-  graphSchemes.forEach(function (graphScheme) {
+  graphSchemes.nodes.forEach(function (graphScheme) {
     // create mutator
     graphQLMutators['create' + capitalize(graphScheme.label)] = {
       type: graphQLObjects[graphScheme.label],
@@ -204,7 +230,7 @@ function createScheme(graphSchemes) {
  * GET /
  */
 admin.get('/', function (req, res) {
-  var scheme = createScheme(grad3ph.nodes);
+  var scheme = createScheme(grad3ph);
   res.render('index.html', { scheme: GraphQLUtilities.printSchema(scheme) });
 });
 
@@ -212,7 +238,7 @@ app
   .use('/', admin)
   .use('/assets', express.static(__dirname + '/public'))
   .use('/graphql', graphqlHTTP({
-    schema: createScheme(grad3ph.nodes),
+    schema: createScheme(grad3ph),
     pretty: true,
     graphiql: true
   }))
