@@ -62,8 +62,30 @@ var grad3ph = {
     },
     {
       "startNodeId": 1,
+      "endNodeId": 1,
+      "properties": [
+        {
+          key: 'since',
+          type: 'datetime'
+        }
+      ],
+      "label": "like"
+    },
+    {
+      "startNodeId": 1,
+      "endNodeId": 1,
+      "properties": [
+        {
+          key: 'since',
+          type: 'datetime'
+        }
+      ],
+      "label": "follow"
+    },
+    {
+      "startNodeId": 1,
       "endNodeId": 2,
-      "label": "likes",
+      "label": "like",
       "properties": [
         {
           "key": "liked",
@@ -82,13 +104,18 @@ var grad3ph = {
 function _getNodeSchemeById(id) {
   return grad3ph.nodes.filter(function (node) {
     return node.id === id
-  });
+  })[0];
 }
 
 function _getEdgesByStartNodeId(id) {
   return grad3ph.edges.filter(function (edge) {
     return edge.startNodeId === id;
   });
+}
+
+function _getLinkTypeName(edge) {
+  var endNode = _getNodeSchemeById(edge.endNodeId);
+  return edge.label + '_' + endNode.label;
 }
 
 /* ================================================================================================================== */
@@ -128,16 +155,23 @@ function createScheme(graphSchemes) {
 
   // create GraphQL Edge Object Types
   graphSchemes.edges.forEach(function (edge) {
-    graphQLObjects[edge.label] = new graphql.GraphQLObjectType({
-      name: edge.label + '_' + _getNodeSchemeById(edge.endNodeId)[0].label,
+    graphQLObjects[_getLinkTypeName(edge)] = new graphql.GraphQLObjectType({
+      name: _getLinkTypeName(edge),
       description: 'TODO: replace this static description',
       fields: function () {
-        return edge.properties.reduce((fields, property) => {
+        var endNode = _getNodeSchemeById(edge.endNodeId);
+
+        var fields = edge.properties.reduce((fields, property) => {
           fields[property.key] = {
             type: TYPES[property.type]
           };
           return fields;
-        }, {})
+        }, {});
+
+        fields[endNode.label] = {
+          type: graphQLObjects[endNode.label]
+        };
+        return fields;
       }
     });
   });
@@ -151,9 +185,9 @@ function createScheme(graphSchemes) {
         return graphScheme.properties.reduce((fields, property) => {
           var edges = _getEdgesByStartNodeId(graphScheme.id);
           edges.forEach(function(edge) {
-            fields[edge.label + '_' + _getNodeSchemeById(edge.endNodeId)[0].label] = {
-              type: graphQLObjects[edge.label]
-            };
+            fields[_getLinkTypeName(edge)] = {
+              type: new graphql.GraphQLList(graphQLObjects[_getLinkTypeName(edge)])
+            }
           });
 
           fields[property.key] = {
